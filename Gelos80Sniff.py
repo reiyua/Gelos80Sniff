@@ -2,7 +2,7 @@
 # rayyan.hodges@studytafensw.edu.au
 # This program is coded in Python and designed to scan the local network for any clients connected that have port 80 open.
 # If a machine is found to have port 80 open, it proceeds to use programs like GoBuster to check for hidden directories.
-# Results are exported to a TXT file for convenience.
+# Results are exported to a TXT file for convenience if the user so desires it.
 
 import nmap  # pip install python-nmap
 import subprocess
