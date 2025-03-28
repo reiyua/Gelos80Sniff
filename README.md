@@ -16,16 +16,16 @@ Requirements
 Python 3.x
 
 nmap Python library – Install with:
-pip install python-nmap
+- pip install python-nmap
 
 Gobuster – Make sure it is installed (e.g., on Linux: sudo apt-get install gobuster).
 
 How to Use
 Clone the repository:
-git clone https://github.com/reiyua/Gelos80Sniff.git
+- git clone https://github.com/reiyua/Gelos80Sniff.git
 
 Run the script with administrator privileges:
-sudo python3 Gelos80Sniff.py
+- sudo python3 Gelos80Sniff.py
 
 Follow the prompts:
 
