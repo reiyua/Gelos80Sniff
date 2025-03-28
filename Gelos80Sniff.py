@@ -4,11 +4,9 @@
 # If a machine is found to have port 80 open, it proceeds to use programs like GoBuster to check for hidden directories.
 # Results are exported to a TXT file for convenience.
 
-# Import required python modules
 import nmap  # pip install python-nmap
 import subprocess
-import os  # Integrates with the OS for file operations
-import signal
+import os
 
 # Timeout Exception Handling
 class TimeoutException(Exception):
@@ -61,10 +59,10 @@ def perform_scan(ip_range):
 
 
 # Function to run Gobuster if port 80 is open
-def run_gobuster(ip):
+def run_gobuster(ip, wordlist):
     print(f"\nRunning web enumeration on {ip} (port 80)...")
     output_file = f"gobuster_results_{ip.replace('.', '_')}.txt"
-    command = f"gobuster dir -u http://{ip} -w /path/to/wordlist.txt -o {output_file}"
+    command = f"gobuster dir -u http://{ip} -w {wordlist} -o {output_file}"
     subprocess.run(command, shell=True)
     print(f"Enumeration complete. Results saved to {output_file}.")
     return output_file
@@ -79,6 +77,12 @@ def main():
         else:
             print("Invalid IP range or connectivity issue. Please try again.")
 
+    # Ask the user for the location of the Gobuster wordlist
+    wordlist_path = input("Enter the full path to your Gobuster wordlist (e.g., /usr/share/wordlists/common.txt): ")
+    if not os.path.isfile(wordlist_path):
+        print("Invalid wordlist path. Please check the path and try again.")
+        return
+
     # Perform network scan
     scan_results = perform_scan(ip_range)
 
@@ -90,7 +94,7 @@ def main():
     # Check for open port 80 and run Gobuster
     for ip, ports in scan_results.items():
         if 80 in ports:
-            output_file = run_gobuster(ip)
+            output_file = run_gobuster(ip, wordlist_path)
 
             # Offer to save results
             choice = input("\nDo you want to save the Gobuster results? (yes/no): ").strip().lower()
