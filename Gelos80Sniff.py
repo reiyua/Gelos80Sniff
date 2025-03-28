@@ -1,20 +1,30 @@
 # © Rayyan Hodges, TAFE NSW, Gelos Enterprises, DataTrust 2025
 # rayyan.hodges@studytafensw.edu.au
 # This program is coded in Python and designed to scan the local network for any clients connected that have port 80 open.
-# If a machine is found to have port 80 open, proceed to use programs like GoBuster and dirb to check for hidden directories without proper security in place and exploit.
+# If a machine is found to have port 80 open, it proceeds to use programs like GoBuster to check for hidden directories.
 # Results are exported to a TXT file for convenience.
 
 # Import required python modules
-import nmap
+import nmap  # pip install python-nmap
 import subprocess
-import os # integrate with operating system to make, manipulate and save the file.
+import os  # Integrates with the OS for file operations
+import signal
 
-# Function to validate user specified IP range and check IP address connectivity
+# Timeout Exception Handling
+class TimeoutException(Exception):
+    pass
+
+
+def handler(signum, frame):
+    raise TimeoutException("Nmap scan timed out!")
+
+
+# Function to validate user-specified IP range and check IP address connectivity
 def validate_ip_range(ip_range):
     print(f"Validating IP address range: {ip_range}")
     scanner = nmap.PortScanner()
     try:
-        scanner.scan(hosts=ip_range, arguments='-sn')  # Ping scan to validate range
+        scanner.scan(hosts=ip_range, arguments='-sn')  # Ping scan to validate the range
         if scanner.all_hosts():
             print("IP address range is valid and reachable.")
             return True
@@ -25,27 +35,40 @@ def validate_ip_range(ip_range):
         print(f"Error validating IP range: {e}")
         return False
 
-# Function to perform the network scan and identify open ports
+
+# Function to perform the network scan and echo results IP by IP
 def perform_scan(ip_range):
-    print(f"Starting network scan on {ip_range}...")
+    print(f"Starting network scan on {ip_range}...\n")
     scanner = nmap.PortScanner()
-    scanner.scan(hosts=ip_range, arguments='-p 1-1024')
-    results = {}
-    for host in scanner.all_hosts():
-        open_ports = scanner[host]['tcp'].keys() if 'tcp' in scanner[host] else []
-        if open_ports:
-            results[host] = open_ports
-            print(f"Open ports on {host}: {open_ports}")
-    return results
+    try:
+        scanner.scan(hosts=ip_range, arguments='-p 1-1024')
+        results = {}
+
+        for host in scanner.all_hosts():
+            print(f"Scanning IP address: {host}")
+            open_ports = scanner[host]['tcp'].keys() if 'tcp' in scanner[host] else []
+            if open_ports:
+                print(f"  --> Open ports on {host}: {list(open_ports)}")
+                results[host] = open_ports
+            else:
+                print(f"  --> No open ports found on {host}.")
+
+        return results
+
+    except Exception as e:
+        print(f"Error during network scan: {e}")
+        return {}
+
 
 # Function to run Gobuster if port 80 is open
 def run_gobuster(ip):
-    print(f"Running web enumeration on {ip} (port 80)...")
+    print(f"\nRunning web enumeration on {ip} (port 80)...")
     output_file = f"gobuster_results_{ip.replace('.', '_')}.txt"
     command = f"gobuster dir -u http://{ip} -w /path/to/wordlist.txt -o {output_file}"
     subprocess.run(command, shell=True)
     print(f"Enumeration complete. Results saved to {output_file}.")
     return output_file
+
 
 # Main function to handle the process
 def main():
@@ -70,7 +93,7 @@ def main():
             output_file = run_gobuster(ip)
 
             # Offer to save results
-            choice = input("Do you want to save the Gobuster results? (yes/no): ").strip().lower()
+            choice = input("\nDo you want to save the Gobuster results? (yes/no): ").strip().lower()
             if choice == "yes":
                 save_path = input("Enter the directory to save the results: ")
                 if os.path.isdir(save_path):
@@ -83,6 +106,6 @@ def main():
 
     print("Process complete. Terminating.")
 
+
 if __name__ == "__main__":
     main()
-
